@@ -8,6 +8,10 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Thư viện Quét mã QR qua Camera -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+
+    <!-- Firebase App & Realtime Database SDKs (v9 Compat Mode) -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
 <body style="background: #000; color: #fff; display: flex; justify-content: center;">
     <div class="mobile-app-container">
@@ -102,7 +106,6 @@
                     </div>
                 </div>
                 <div class="content-area">
-                    <!-- Nút Bật Camera Quét QR trực tiếp ở trang dịch -->
                     <button id="btn-scan-camera" class="btn-outline" style="margin-bottom: 15px; border-color: var(--primary-yellow); color: var(--primary-yellow);" onclick="openQRScanner()">
                         <i class="fa-solid fa-camera"></i> Quét mã QR bằng Camera
                     </button>
@@ -187,7 +190,7 @@
                             <label>Nội dung văn bản tiếng nước ngoài</label>
                             <textarea id="doc-content" rows="4" placeholder="Dán nội dung tiếng nước ngoài vào đây..."></textarea>
                         </div>
-                        <button class="btn-primary" onclick="uploadDocument()"><i class="fa-solid fa-upload"></i> Tải lên & Tạo mã QR</button>
+                        <button class="btn-primary" onclick="uploadDocument()"><i class="fa-solid fa-upload"></i> Tải lên Firebase & Tạo QR</button>
                     </div>
 
                     <h3 style="font-size: 14px; margin-bottom: 10px;">Tài liệu đã tải lên</h3>
@@ -211,6 +214,23 @@
         </div>
 
     </div>
+
+    <!-- KHỞI TẠO FIREBASE CONFIG -->
+    <script>
+        const firebaseConfig = {
+            apiKey: "YOUR_API_KEY",
+            authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+            databaseURL: "https://YOUR_PROJECT_ID-default-rtdb.firebaseio.com",
+            projectId: "YOUR_PROJECT_ID",
+            storageBucket: "YOUR_PROJECT_ID.appspot.com",
+            messagingSenderId: "YOUR_SENDER_ID",
+            appId: "YOUR_APP_ID"
+        };
+        // Khởi tạo Firebase
+        firebase.initializeApp(firebaseConfig);
+        const database = firebase.database();
+    </script>
+
     <script src="script.js"></script>
 </body>
 </html>
