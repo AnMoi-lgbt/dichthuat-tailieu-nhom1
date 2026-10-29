@@ -177,7 +177,8 @@ function doResetPassword() {
             const subject = encodeURIComponent("[TNUT] Thông báo cấp lại mật khẩu");
             const bodyText = `Hệ thống cấp lại mật khẩu thành công!\nTên đăng nhập: ${email}\nMật khẩu mới: ${newPassword}\n\nVui lòng đăng nhập và tiến hành đổi mật khẩu.`;
 
-            window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(bodyText)}`; successEl.innerText = `Đã cấp mật khẩu mới: [ ${newPassword} ]. Vui lòng kiểm tra Gmail!`;
+            window.location.href = `mailto:${email}?subject=${subject}&body=${encodeURIComponent(bodyText)}`;
+            successEl.innerText = `Đã cấp mật khẩu mới: [ ${newPassword} ]. Vui lòng kiểm tra Gmail!`;
             successEl.style.display = 'block';
         });
     });
@@ -201,7 +202,7 @@ function setupRoleUI(user) {
 
     if (user.role === 'sinhvien') {
         document.getElementById('user-info').innerText = `SV: ${user.fullname}`;
-        document.getElementById('user-subinfo').innerText = `MSV: ${user.studentId \vert{}\vert{} 'Chưa có'} \vert{} Lớp: ${user.studentClass}`;
+        document.getElementById('user-subinfo').innerText = `MSV: ${user.studentId || 'Chưa có'} | Lớp: ${user.studentClass}`;
         
         navContainer.innerHTML = `
             <div class="nav-item active" onclick="switchTab('dich', this)"><i class="fa-solid fa-language"></i><span>Dịch</span></div>
@@ -296,4 +297,228 @@ function listenToStudentsList() {
             const user = childSnap.val();
             if (user.role === 'sinhvien') {
                 html += `
-                <div style="background:var(--surface-light); padding:12px; border-radius:8px
+                <div style="background:var(--surface-light); padding:12px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                    <div>
+                        <strong style="color:var(--primary-yellow); font-size:15px;">${user.fullname}</strong><br>
+                        <small class="text-muted" style="font-size:13px;">MSV: <strong>${user.studentId || 'Trống'}</strong> | Lớp: ${user.studentClass}</small><br>
+                        <small class="text-muted" style="font-size:12px;"><i class="fa-regular fa-envelope"></i> ${user.email}</small>
+                    </div>
+                    <button onclick="deleteStudent('${encodeEmail(user.email)}')" style="background:var(--danger); color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                </div>`;
+            }
+        });
+        container.innerHTML = html || '<p class="text-muted" style="text-align:center; padding-top:20px;">Chưa có sinh viên nào đăng ký.</p>';
+    });
+}
+
+function deleteStudent(encodedEmail) {
+    if(confirm("Bạn có chắc chắn muốn xóa sinh viên này khỏi hệ thống?")) {
+        database.ref('users/' + encodedEmail).remove().then(() => {
+            alert("Đã xóa sinh viên!");
+        });
+    }
+}
+
+function uploadDocument() {
+    const title = document.getElementById('doc-title').value.trim();
+    const content = document.getElementById('doc-content').value.trim();
+    
+    if(!title || !content) {
+        alert("Vui lòng nhập đầy đủ Tên tài liệu và Nội dung tài liệu!");
+        return;
+    }
+
+    const newDocRef = database.ref('docs').push();
+    const docId = newDocRef.key;
+
+    newDocRef.set({
+        id: docId,
+        title: title,
+        content: content,
+        date: new Date().toLocaleDateString('vi-VN')
+    }).then(() => {
+        document.getElementById('doc-title').value = '';
+        document.getElementById('doc-content').value = '';
+        alert("Đã tải tài liệu lên hệ thống và tạo mã QR thành công!");
+    }).catch(err => {
+        alert("Lỗi tải tài liệu: " + err.message);
+    });
+}
+
+function listenToTeacherDocs() {
+    database.ref('docs').on('value', (snapshot) => {
+        const container = document.getElementById('teacher-docs-container');
+        let html = '';
+
+        snapshot.forEach((childSnap) => {
+            const doc = childSnap.val();
+            html = `
+                <div style="background:var(--surface-light); padding:12px; border-radius:8px; margin-bottom:12px; display:flex; gap: 12px; border-left: 3px solid var(--primary-yellow);">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${doc.id}&color=ffffff&bgcolor=1b1c21" style="border-radius:5px; width: 80px; height: 80px;">
+                    <div style="flex:1;">
+                        <strong style="color:white; font-size:14px; display:block; margin-bottom:5px;">${doc.title}</strong>
+                        <small class="text-muted"><i class="fa-regular fa-calendar"></i> ${doc.date}</small>
+                        <button onclick="deleteDoc('${doc.id}')" style="background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:4px; margin-top:8px; cursor:pointer; font-size:12px; display:block;"><i class="fa-solid fa-trash"></i> Xóa tài liệu</button>
+                    </div>
+                </div>
+            ` + html; // Cộng dồn ngược để tài liệu mới lên đầu
+        });
+
+        container.innerHTML = html || '<p class="text-muted" style="text-align:center; padding-top:20px;">Chưa có tài liệu nào được tải lên.</p>';
+    });
+}
+
+function deleteDoc(docId) {
+    if(confirm("Xóa tài liệu này trên Firebase? Mọi sinh viên sẽ không quét được nữa!")) {
+        database.ref('docs/' + docId).remove();
+    }
+}
+
+/* ====================================================
+   TÍNH NĂNG CỦA SINH VIÊN (KHO TÀI LIỆU & LỊCH SỬ)
+==================================================== */
+function listenToDocLibrary() {
+    database.ref('docs').on('value', (snapshot) => {
+        renderDocLibraryFromSnapshot(snapshot);
+    });
+}
+
+function renderDocLibrary() {
+    database.ref('docs').once('value').then((snapshot) => {
+        renderDocLibraryFromSnapshot(snapshot);
+    });
+}
+
+function renderDocLibraryFromSnapshot(snapshot) {
+    const container = document.getElementById('student-docs-container');
+    const searchTerm = document.getElementById('search-doc').value.toLowerCase();
+    let html = '';
+
+    snapshot.forEach((childSnap) => {
+        const doc = childSnap.val();
+        if (doc.title.toLowerCase().includes(searchTerm)) {
+            html = `
+                <div style="background:var(--surface-light); padding:12px; border-radius:8px; margin-bottom:12px; display:flex; gap: 12px; align-items:center;">
+                    <img src="https://api.qrserver.com/v1/create-qr-code/?size=65x65&data=${doc.id}&color=ffffff&bgcolor=1b1c21" style="border-radius:5px; width:65px; height:65px;">
+                    <div style="flex:1;">
+                        <strong style="color:var(--text-main); font-size:14px;">${doc.title}</strong><br>
+                        <small class="text-muted">Đăng lúc: ${doc.date}</small><br>
+                        <button class="btn-primary" onclick="openQRScanner()" style="padding: 5px 12px; font-size: 11px; margin-top: 8px; display:inline-block; width:auto; border-radius: 4px;">
+                            <i class="fa-solid fa-camera"></i> Quét mã ngay
+                        </button>
+                    </div>
+                </div>
+            ` + html;
+        }
+    });
+
+    container.innerHTML = html || '<p class="text-muted" style="text-align:center; margin-top:20px;">Không có tài liệu nào.</p>';
+}
+
+/* ====================================================
+   DỊCH THUẬT GOOGLE & LỊCH SỬ
+==================================================== */
+const dictionary = {
+    "spindle": "trục chính", "coolant": "dung dịch làm mát", "chuck": "mâm cặp",
+    "valve": "van", "speed": "tốc độ", "rpm": "vòng/phút", "cnc": "máy tiện CNC", "machine": "máy",
+    "bearing": "vòng bi", "gear": "bánh răng", "motor": "động cơ", "shaft": "trục",
+    "sensor": "cảm biến", "voltage": "điện áp", "current": "dòng điện", "power": "công suất"
+};
+
+async function doTranslate() {
+    const sourceText = document.getElementById('source-text').value.trim();
+    const sourceLang = document.getElementById('source-lang').value;
+    const btn = document.getElementById('btn-translate');
+    const resultBox = document.getElementById('result-box');
+    
+    if (!sourceText) { 
+        alert("Vui lòng nhập văn bản hoặc quét mã QR trước!"); 
+        return; 
+    }
+
+    btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Đang xử lý...';
+    btn.style.opacity = '0.7';
+    resultBox.style.display = 'none';
+
+    try {
+        const url = `https://translate.googleapis.com/translate_a/single?client=gtx&sl=${sourceLang}&tl=vi&dt=t&q=${encodeURIComponent(sourceText)}`;
+        const response = await fetch(url);
+        const data = await response.json();
+        
+        let translatedText = '';
+        if (data && data[0]) {
+            data[0].forEach(item => { if (item[0]) translatedText += item[0]; });
+        }
+
+        // Highlight từ vựng chuyên ngành
+        let foundVocabs = [];
+        const lowerSource = sourceText.toLowerCase();
+        for (const [eng, vie] of Object.entries(dictionary)) {
+            if (lowerSource.includes(eng)) {
+                foundVocabs.push(`${eng} ➔ ${vie}`);
+                const regexVie = new RegExp(vie, 'gi');
+                translatedText = translatedText.replace(regexVie, `<strong style="color:var(--primary-yellow)">${vie}</strong>`);
+            }
+        }
+
+        document.getElementById('translated-text').innerHTML = translatedText;
+        const vocabList = document.getElementById('vocab-list');
+        vocabList.innerHTML = foundVocabs.length > 0 
+            ? foundVocabs.map(v => `<li>${v}</li>`).join('') 
+            : "<li>Không phát hiện từ chuyên ngành đặc biệt.</li>";
+
+        btn.innerHTML = '<i class="fa-solid fa-language"></i> Dịch sang tiếng Việt';
+        btn.style.opacity = '1';
+        resultBox.style.display = 'block';
+
+        saveToHistory(sourceText, translatedText);
+    } catch (error) {
+        alert("Lỗi kết nối máy chủ dịch thuật! Vui lòng thử lại.");
+        btn.innerHTML = '<i class="fa-solid fa-language"></i> Dịch sang tiếng Việt';
+        btn.style.opacity = '1';
+    }
+}
+
+function saveToHistory(original, translated) {
+    if (!currentUserEmail || currentUserRole !== 'sinhvien') return;
+    
+    const userKey = encodeEmail(currentUserEmail);
+    database.ref('users/' + userKey + '/history').push({
+        original: original,
+        translated: translated,
+        time: new Date().toLocaleString('vi-VN', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: '2-digit', year: 'numeric'})
+    });
+}
+
+function listenToHistory() {
+    if (!currentUserEmail || currentUserRole !== 'sinhvien') return;
+    
+    const userKey = encodeEmail(currentUserEmail);
+    database.ref('users/' + userKey + '/history').on('value', (snapshot) => {
+        const container = document.getElementById('history-container');
+        let html = '';
+
+        snapshot.forEach((childSnap) => {
+            const item = childSnap.val();
+            html = `
+                <div style="background:var(--surface-dark); border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:12px;">
+                    <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;"><i class="fa-regular fa-clock"></i> ${item.time}</div>
+                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px; font-style:italic;">${item.original.substring(0, 100)}${item.original.length > 100 ? '...' : ''}</p>
+                    <p style="font-size:14px; color:var(--text-main); font-weight:500; line-height: 1.4;">${item.translated}</p>
+                </div>
+            ` + html; // Lịch sử mới nhất lên đầu
+        });
+
+        container.innerHTML = html || '<p class="text-muted" style="text-align:center; padding:30px 0;">Chưa có lịch sử dịch thuật.</p>';
+    });
+}
+
+function clearHistory() {
+    if (!currentUserEmail) return;
+    if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử dịch thuật không?")) {
+        const userKey = encodeEmail(currentUserEmail);
+        database.ref('users/' + userKey + '/history').remove().then(() => {
+            alert("Đã xóa lịch sử!");
+        });
+    }
+}
