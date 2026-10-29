@@ -1,0 +1,82 @@
+:root {
+  --bg-dark: #101115;
+  --surface-dark: #1b1c21;
+  --surface-light: #282a32;
+  --primary-yellow: #f8c02c;
+  --text-main: #ffffff;
+  --text-muted: #8b8d96;
+  --border-color: #31333d;
+  --danger: #ff4757;
+  --success: #2ed573;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; }
+body { background-color: #000; display: flex; justify-content: center; color: var(--text-main); }
+
+.mobile-app-container {
+  width: 100%; max-width: 420px; min-height: 100vh;
+  background-color: var(--bg-dark); position: relative;
+  overflow-y: auto; overflow-x: hidden;
+  border-left: 1px solid var(--border-color); border-right: 1px solid var(--border-color);
+}
+
+.screen { padding: 20px; padding-bottom: 80px; }
+
+.text-danger { color: var(--danger); }
+.text-success { color: var(--success); }
+.text-yellow { color: var(--primary-yellow); }
+.text-muted { color: var(--text-muted); }
+.mt-15 { margin-top: 15px; }
+
+/* Login / Register Header */
+.header-login { margin-bottom: 25px; }
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-icon { width: 40px; height: 40px; background: var(--primary-yellow); border-radius: 50%; }
+.page-title { font-size: 26px; margin-bottom: 8px; color: var(--text-main); }
+.subtitle { font-size: 13px; color: var(--text-muted); margin-bottom: 25px; }
+
+.input-group { margin-bottom: 18px; }
+.input-group label { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; color: var(--text-muted); }
+.forgot-pwd { color: var(--primary-yellow); text-decoration: none; }
+.input-group input, .input-group textarea {
+  width: 100%; background-color: var(--surface-dark); border: 1px solid var(--border-color);
+  color: var(--text-main); padding: 12px; border-radius: 8px; font-size: 15px; outline: none;
+}
+.input-group input:focus, .input-group textarea:focus { border-color: var(--primary-yellow); }
+
+.btn-primary {
+  width: 100%; padding: 14px; background-color: var(--primary-yellow);
+  color: #000; font-weight: bold; border: none; border-radius: 8px;
+  font-size: 15px; cursor: pointer; margin-bottom: 12px; transition: 0.2s;
+}
+.btn-outline {
+  width: 100%; padding: 12px; background-color: transparent;
+  color: var(--text-main); border: 1px solid var(--border-color); border-radius: 8px;
+  font-size: 13px; cursor: pointer;
+}
+
+/* Tabs & Content */
+.tab-content { display: none; }
+.tab-content.active { display: block; }
+.top-bar { padding-bottom: 12px; border-bottom: 1px solid var(--border-color); margin-bottom: 15px; display: flex; justify-content: space-between; align-items: center;}
+
+.lang-selector { display: flex; justify-content: space-between; align-items: center; background: var(--surface-dark); border-radius: 8px; padding: 5px; margin-bottom: 12px; }
+.lang-selector select { background: transparent; border: none; color: var(--text-main); padding: 8px; outline: none; font-size: 15px; flex: 1; text-align: center; }
+.box-input { width: 100%; background: var(--surface-dark); border: 1px solid var(--border-color); color: var(--text-main); padding: 12px; border-radius: 8px; outline: none; resize: none; font-size: 14px; }
+
+.result-box { background: var(--surface-dark); border: 1px solid var(--border-color); border-radius: 8px; padding: 12px; border-left: 3px solid var(--primary-yellow); }
+.result-header { display: flex; justify-content: space-between; font-size: 13px; font-weight: bold;}
+.badge { border: 1px solid var(--primary-yellow); padding: 2px 6px; border-radius: 4px; font-size: 11px; }
+
+/* Bottom Nav */
+.bottom-nav {
+  position: fixed; bottom: 0; width: 100%; max-width: 420px;
+  background-color: var(--surface-dark); border-top: 1px solid var(--border-color);
+  display: flex; justify-content: space-around; padding: 10px 0; z-index: 10;
+}
+.nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; color: var(--text-muted); cursor: pointer; font-size: 11px; }
+.nav-item.active { color: var(--primary-yellow); }
+.nav-item i { font-size: 18px; }
+
+/* QR Reader Frame Override */
+#qr-reader video { border-radius: 8px; object-fit: cover; }
