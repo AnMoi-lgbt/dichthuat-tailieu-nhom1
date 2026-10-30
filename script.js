@@ -61,7 +61,6 @@ function doRegister() {
     errorEl.style.display = 'none';
     successEl.style.display = 'none';
 
-    // Kiểm tra dữ liệu đầu vào
     if (!fullname || !studentClass || !studentId) {
         errorEl.innerText = "Vui lòng nhập đầy đủ Họ tên, Lớp và Mã sinh viên.";
         errorEl.style.display = 'block';
@@ -80,7 +79,6 @@ function doRegister() {
 
     const userKey = encodeEmail(email);
 
-    // Kiểm tra & Đẩy dữ liệu lên Firebase
     database.ref('users/' + userKey).once('value').then((snapshot) => {
         if (snapshot.exists()) {
             errorEl.innerText = "Lỗi: Email này đã được đăng ký trên hệ thống!";
@@ -100,12 +98,12 @@ function doRegister() {
                     hideRegisterScreen();
                 }, 1500);
             }).catch((error) => {
-                errorEl.innerText = "Lỗi ghi dữ liệu (Vui lòng mở khóa Rule Firebase): " + error.message;
+                errorEl.innerText = "Lỗi ghi dữ liệu: " + error.message;
                 errorEl.style.display = 'block';
             });
         }
     }).catch((error) => {
-        errorEl.innerText = "Lỗi kết nối CSDL (Vui lòng mở khóa Rule Firebase): " + error.message;
+        errorEl.innerText = "Lỗi kết nối CSDL: " + error.message;
         errorEl.style.display = 'block';
     });
 }
@@ -194,7 +192,7 @@ function doLogout() {
 }
 
 /* ====================================================
-   QUẢN LÝ GIAO DIỆN (NAV & TABS)
+   QUẢN LÝ GIAO DIỆN (NAV & TABS - SỬA LỖI CHUYỂN TAB)
 ==================================================== */
 function setupRoleUI(user) {
     const navContainer = document.getElementById('bottom-nav-container');
@@ -229,12 +227,24 @@ function setupRoleUI(user) {
     }
 }
 
+// Xử lý ẩn/hiển thị Tab chính xác bằng style display
 function switchTab(tabId, navElement) {
-    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-    document.getElementById('tab-' + tabId).classList.add('active');
-    
+    const allTabs = document.querySelectorAll('.tab-content');
+    allTabs.forEach(tab => {
+        tab.style.display = 'none';
+        tab.classList.remove('active');
+    });
+
+    const targetTab = document.getElementById('tab-' + tabId);
+    if (targetTab) {
+        targetTab.style.display = 'block';
+        targetTab.classList.add('active');
+    }
+
     document.querySelectorAll('.nav-item').forEach(item => item.classList.remove('active'));
-    if(navElement) navElement.classList.add('active');
+    if (navElement) {
+        navElement.classList.add('active');
+    }
 }
 
 /* ====================================================
@@ -254,7 +264,6 @@ function openQRScanner() {
         (decodedText) => {
             closeQRScanner();
             
-            // Tìm tài liệu trên Firebase theo docId
             database.ref('docs/' + decodedText).once('value').then((snapshot) => {
                 if (snapshot.exists()) {
                     const doc = snapshot.val();
@@ -262,7 +271,6 @@ function openQRScanner() {
                     alert(`Đã quét thành công tài liệu: "${doc.title}". Đang tiến hành dịch...`);
                     doTranslate();
                 } else {
-                    // Nếu QR không nằm trong Database thì hiển thị nội dung trực tiếp
                     document.getElementById('source-text').value = decodedText;
                     doTranslate();
                 }
@@ -270,7 +278,7 @@ function openQRScanner() {
         },
         (errorMessage) => {}
     ).catch(err => {
-        alert("Khuyến cáo: Vui lòng cấp quyền truy cập Camera cho ứng dụng trong cài đặt trình duyệt!");
+        alert("Cần cấp quyền truy cập Camera cho ứng dụng!");
         closeQRScanner();
     });
 }
@@ -286,7 +294,7 @@ function closeQRScanner() {
 }
 
 /* ====================================================
-   TÍNH NĂNG CỦA GIÁO VIÊN
+   TÍNH NĂNG GIÁO VIÊN
 ==================================================== */
 function listenToStudentsList() {
     database.ref('users').on('value', (snapshot) => {
@@ -297,25 +305,23 @@ function listenToStudentsList() {
             const user = childSnap.val();
             if (user.role === 'sinhvien') {
                 html += `
-                <div style="background:var(--surface-light); padding:12px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
+                <div style="background:#1e1e1e; padding:12px; border-radius:8px; margin-bottom:12px; display:flex; justify-content:space-between; align-items:center;">
                     <div>
-                        <strong style="color:var(--primary-yellow); font-size:15px;">${user.fullname}</strong><br>
-                        <small class="text-muted" style="font-size:13px;">MSV: <strong>${user.studentId || 'Trống'}</strong> | Lớp: ${user.studentClass}</small><br>
-                        <small class="text-muted" style="font-size:12px;"><i class="fa-regular fa-envelope"></i> ${user.email}</small>
+                        <strong style="color:#f1c40f; font-size:15px;">${user.fullname}</strong><br>
+                        <small style="color:#888; font-size:13px;">MSV: <strong>${user.studentId || 'Trống'}</strong> | Lớp: ${user.studentClass}</small><br>
+                        <small style="color:#888; font-size:12px;"><i class="fa-regular fa-envelope"></i> ${user.email}</small>
                     </div>
-                    <button onclick="deleteStudent('${encodeEmail(user.email)}')" style="background:var(--danger); color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
+                    <button onclick="deleteStudent('${encodeEmail(user.email)}')" style="background:#e74c3c; color:white; border:none; padding:8px 12px; border-radius:5px; cursor:pointer;"><i class="fa-solid fa-trash"></i></button>
                 </div>`;
             }
         });
-        container.innerHTML = html || '<p class="text-muted" style="text-align:center; padding-top:20px;">Chưa có sinh viên nào đăng ký.</p>';
+        container.innerHTML = html || '<p style="color:#888; text-align:center; padding-top:20px;">Chưa có sinh viên nào đăng ký.</p>';
     });
 }
 
 function deleteStudent(encodedEmail) {
-    if(confirm("Bạn có chắc chắn muốn xóa sinh viên này khỏi hệ thống?")) {
-        database.ref('users/' + encodedEmail).remove().then(() => {
-            alert("Đã xóa sinh viên!");
-        });
+    if(confirm("Xóa sinh viên này khỏi hệ thống?")) {
+        database.ref('users/' + encodedEmail).remove();
     }
 }
 
@@ -353,29 +359,29 @@ function listenToTeacherDocs() {
         snapshot.forEach((childSnap) => {
             const doc = childSnap.val();
             html = `
-                <div style="background:var(--surface-light); padding:12px; border-radius:8px; margin-bottom:12px; display:flex; gap: 12px; border-left: 3px solid var(--primary-yellow);">
+                <div style="background:#1e1e1e; padding:12px; border-radius:8px; margin-bottom:12px; display:flex; gap: 12px; border-left: 3px solid #f1c40f;">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=80x80&data=${doc.id}&color=ffffff&bgcolor=1b1c21" style="border-radius:5px; width: 80px; height: 80px;">
                     <div style="flex:1;">
                         <strong style="color:white; font-size:14px; display:block; margin-bottom:5px;">${doc.title}</strong>
-                        <small class="text-muted"><i class="fa-regular fa-calendar"></i> ${doc.date}</small>
-                        <button onclick="deleteDoc('${doc.id}')" style="background:var(--danger); color:white; border:none; padding:5px 10px; border-radius:4px; margin-top:8px; cursor:pointer; font-size:12px; display:block;"><i class="fa-solid fa-trash"></i> Xóa tài liệu</button>
+                        <small style="color:#888;"><i class="fa-regular fa-calendar"></i> ${doc.date}</small>
+                        <button onclick="deleteDoc('${doc.id}')" style="background:#e74c3c; color:white; border:none; padding:5px 10px; border-radius:4px; margin-top:8px; cursor:pointer; font-size:12px; display:block;"><i class="fa-solid fa-trash"></i> Xóa tài liệu</button>
                     </div>
                 </div>
-            ` + html; // Cộng dồn ngược để tài liệu mới lên đầu
+            ` + html;
         });
 
-        container.innerHTML = html || '<p class="text-muted" style="text-align:center; padding-top:20px;">Chưa có tài liệu nào được tải lên.</p>';
+        container.innerHTML = html || '<p style="color:#888; text-align:center; padding-top:20px;">Chưa có tài liệu nào.</p>';
     });
 }
 
 function deleteDoc(docId) {
-    if(confirm("Xóa tài liệu này trên Firebase? Mọi sinh viên sẽ không quét được nữa!")) {
+    if(confirm("Xóa tài liệu này trên Firebase?")) {
         database.ref('docs/' + docId).remove();
     }
 }
 
 /* ====================================================
-   TÍNH NĂNG CỦA SINH VIÊN (KHO TÀI LIỆU & LỊCH SỬ)
+   TÍNH NĂNG SINH VIÊN (KHO TÀI LIỆU & LỊCH SỬ)
 ==================================================== */
 function listenToDocLibrary() {
     database.ref('docs').on('value', (snapshot) => {
@@ -391,18 +397,19 @@ function renderDocLibrary() {
 
 function renderDocLibraryFromSnapshot(snapshot) {
     const container = document.getElementById('student-docs-container');
-    const searchTerm = document.getElementById('search-doc').value.toLowerCase();
+    const searchInput = document.getElementById('search-doc');
+    const searchTerm = searchInput ? searchInput.value.toLowerCase() : '';
     let html = '';
 
     snapshot.forEach((childSnap) => {
         const doc = childSnap.val();
         if (doc.title.toLowerCase().includes(searchTerm)) {
             html = `
-                <div style="background:var(--surface-light); padding:12px; border-radius:8px; margin-bottom:12px; display:flex; gap: 12px; align-items:center;">
+                <div style="background:#1e1e1e; padding:12px; border-radius:8px; margin-bottom:12px; display:flex; gap: 12px; align-items:center;">
                     <img src="https://api.qrserver.com/v1/create-qr-code/?size=65x65&data=${doc.id}&color=ffffff&bgcolor=1b1c21" style="border-radius:5px; width:65px; height:65px;">
                     <div style="flex:1;">
-                        <strong style="color:var(--text-main); font-size:14px;">${doc.title}</strong><br>
-                        <small class="text-muted">Đăng lúc: ${doc.date}</small><br>
+                        <strong style="color:#fff; font-size:14px;">${doc.title}</strong><br>
+                        <small style="color:#888;">Đăng lúc: ${doc.date}</small><br>
                         <button class="btn-primary" onclick="openQRScanner()" style="padding: 5px 12px; font-size: 11px; margin-top: 8px; display:inline-block; width:auto; border-radius: 4px;">
                             <i class="fa-solid fa-camera"></i> Quét mã ngay
                         </button>
@@ -412,7 +419,7 @@ function renderDocLibraryFromSnapshot(snapshot) {
         }
     });
 
-    container.innerHTML = html || '<p class="text-muted" style="text-align:center; margin-top:20px;">Không có tài liệu nào.</p>';
+    container.innerHTML = html || '<p style="color:#888; text-align:center; margin-top:20px;">Chưa có tài liệu nào trong kho.</p>';
 }
 
 /* ====================================================
@@ -450,14 +457,13 @@ async function doTranslate() {
             data[0].forEach(item => { if (item[0]) translatedText += item[0]; });
         }
 
-        // Highlight từ vựng chuyên ngành
         let foundVocabs = [];
         const lowerSource = sourceText.toLowerCase();
         for (const [eng, vie] of Object.entries(dictionary)) {
             if (lowerSource.includes(eng)) {
                 foundVocabs.push(`${eng} ➔ ${vie}`);
                 const regexVie = new RegExp(vie, 'gi');
-                translatedText = translatedText.replace(regexVie, `<strong style="color:var(--primary-yellow)">${vie}</strong>`);
+                translatedText = translatedText.replace(regexVie, `<strong style="color:#f1c40f">${vie}</strong>`);
             }
         }
 
@@ -473,7 +479,7 @@ async function doTranslate() {
 
         saveToHistory(sourceText, translatedText);
     } catch (error) {
-        alert("Lỗi kết nối máy chủ dịch thuật! Vui lòng thử lại.");
+        alert("Lỗi kết nối máy chủ dịch thuật!");
         btn.innerHTML = '<i class="fa-solid fa-language"></i> Dịch sang tiếng Việt';
         btn.style.opacity = '1';
     }
@@ -501,15 +507,15 @@ function listenToHistory() {
         snapshot.forEach((childSnap) => {
             const item = childSnap.val();
             html = `
-                <div style="background:var(--surface-dark); border:1px solid var(--border-color); border-radius:8px; padding:12px; margin-bottom:12px;">
-                    <div style="font-size:12px; color:var(--text-muted); margin-bottom:6px;"><i class="fa-regular fa-clock"></i> ${item.time}</div>
-                    <p style="font-size:13px; color:var(--text-muted); margin-bottom:8px; font-style:italic;">${item.original.substring(0, 100)}${item.original.length > 100 ? '...' : ''}</p>
-                    <p style="font-size:14px; color:var(--text-main); font-weight:500; line-height: 1.4;">${item.translated}</p>
+                <div style="background:#1e1e1e; border:1px solid #333; border-radius:8px; padding:12px; margin-bottom:12px;">
+                    <div style="font-size:12px; color:#888; margin-bottom:6px;"><i class="fa-regular fa-clock"></i> ${item.time}</div>
+                    <p style="font-size:13px; color:#888; margin-bottom:8px; font-style:italic;">${item.original.substring(0, 100)}${item.original.length > 100 ? '...' : ''}</p>
+                    <p style="font-size:14px; color:#fff; font-weight:500; line-height: 1.4;">${item.translated}</p>
                 </div>
-            ` + html; // Lịch sử mới nhất lên đầu
+            ` + html;
         });
 
-        container.innerHTML = html || '<p class="text-muted" style="text-align:center; padding:30px 0;">Chưa có lịch sử dịch thuật.</p>';
+        container.innerHTML = html || '<p style="color:#888; text-align:center; padding:30px 0;">Chưa có lịch sử dịch thuật.</p>';
     });
 }
 
@@ -517,8 +523,6 @@ function clearHistory() {
     if (!currentUserEmail) return;
     if(confirm("Bạn có chắc chắn muốn xóa toàn bộ lịch sử dịch thuật không?")) {
         const userKey = encodeEmail(currentUserEmail);
-        database.ref('users/' + userKey + '/history').remove().then(() => {
-            alert("Đã xóa lịch sử!");
-        });
+        database.ref('users/' + userKey + '/history').remove();
     }
 }
