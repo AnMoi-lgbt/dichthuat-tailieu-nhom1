@@ -6,18 +6,19 @@
     <title>Sổ Tay Xưởng Cơ Điện Tử - TNUT</title>
     <link rel="stylesheet" href="styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <!-- Thư viện Quét mã QR qua Camera -->
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
 
-    <!-- Firebase App & Realtime Database SDKs (v9 Compat Mode) -->
+    <!-- Firebase SDK v9 Compat Mode -->
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-database-compat.js"></script>
 </head>
-<body style="background: #000; color: #fff; display: flex; justify-content: center;">
+<body style="background: #000; color: #fff; display: flex; justify-content: center; margin: 0; padding: 0;">
     <div class="mobile-app-container">
         
         <!-- MÀN HÌNH ĐĂNG NHẬP -->
-        <div id="login-screen" class="screen active" style="display: block;">
+        <div id="login-screen" class="screen active">
             <div class="header-login">
                 <div class="logo">
                     <div class="logo-icon"></div>
@@ -40,22 +41,22 @@
                 <input type="password" id="login-password" placeholder="Nhập mật khẩu...">
             </div>
 
-            <p id="login-error" class="text-danger" style="display: none; margin-bottom: 15px; font-size: 14px;"></p>
+            <p id="login-error" class="text-danger" style="display: none; margin-bottom: 15px; font-size: 14px; color: #ff4d4d;"></p>
 
             <button class="btn-primary" onclick="doLogin()">Đăng nhập</button>
             <button class="btn-outline" onclick="showRegisterScreen()"><i class="fa-solid fa-user-plus"></i> Chưa có tài khoản? Đăng ký ngay</button>
             
-            <div style="margin-top: 20px; font-size: 12px; color: var(--text-muted); text-align: center;">
+            <div style="margin-top: 20px; font-size: 12px; color: #888; text-align: center;">
                 <em>GV mặc định: giangvien@tnut.edu.vn / 123456</em>
             </div>
         </div>
 
         <!-- MÀN HÌNH ĐĂNG KÝ -->
-        <div id="register-screen" class="screen" style="display: none !important;">
+        <div id="register-screen" class="screen" style="display: none;">
             <h1 class="page-title">Đăng ký tài khoản</h1>
             <p class="subtitle">Dành cho Sinh Viên (Email @tnut.edu.vn)</p>
             
-            <div class="input-group mt-15">
+            <div class="input-group" style="margin-top: 15px;">
                 <label>Họ và tên</label>
                 <input type="text" id="reg-fullname" placeholder="VD: Lê Hà Tuấn Kiệt">
             </div>
@@ -80,41 +81,41 @@
                 <input type="password" id="reg-password" placeholder="Tạo mật khẩu (từ 6 ký tự)...">
             </div>
 
-            <p id="reg-error" class="text-danger" style="display: none; margin-bottom: 15px; font-size: 14px;"></p>
-            <p id="reg-success" class="text-success" style="display: none; margin-bottom: 15px; font-size: 14px;">Đăng ký thành công! Đang chuyển về đăng nhập...</p>
+            <p id="reg-error" class="text-danger" style="display: none; margin-bottom: 15px; font-size: 14px; color: #ff4d4d;"></p>
+            <p id="reg-success" class="text-success" style="display: none; margin-bottom: 15px; font-size: 14px; color: #2ecc71;">Đăng ký thành công! Đang chuyển về đăng nhập...</p>
 
             <button class="btn-primary" onclick="doRegister()">Tạo tài khoản</button>
             <button class="btn-outline" onclick="hideRegisterScreen()">Quay lại Đăng nhập</button>
         </div>
 
         <!-- MÀN HÌNH QUÊN MẬT KHẨU -->
-        <div id="forgot-screen" class="screen" style="display: none !important;">
+        <div id="forgot-screen" class="screen" style="display: none;">
             <h1 class="page-title">Khôi phục mật khẩu</h1>
             <p class="subtitle">Nhập email đăng ký để nhận mật khẩu mới qua Gmail.</p>
             <div class="input-group">
                 <label>Email trường (@tnut.edu.vn)</label>
                 <input type="email" id="forgot-email" placeholder="VD: nguyenvana@tnut.edu.vn">
             </div>
-            <p id="forgot-error" class="text-danger" style="display: none; margin-bottom: 15px; font-size: 14px;"></p>
-            <p id="forgot-success" class="text-success" style="display: none; margin-bottom: 15px; font-size: 14px;"></p>
+            <p id="forgot-error" class="text-danger" style="display: none; margin-bottom: 15px; font-size: 14px; color: #ff4d4d;"></p>
+            <p id="forgot-success" class="text-success" style="display: none; margin-bottom: 15px; font-size: 14px; color: #2ecc71;"></p>
             <button class="btn-primary" onclick="doResetPassword()"><i class="fa-solid fa-paper-plane"></i> Tạo & Gửi mật khẩu mới</button>
             <button class="btn-outline" onclick="hideForgotScreen()">Quay lại Đăng nhập</button>
         </div>
 
         <!-- MÀN HÌNH CHÍNH -->
-        <div id="main-app" class="screen" style="display: none !important;">
+        <div id="main-app" class="screen" style="display: none;">
             
             <!-- Tab 1: Dịch thuật -->
             <div id="tab-dich" class="tab-content">
                 <div class="top-bar">
                     <h2><i class="fa-solid fa-language"></i> Dịch tự động</h2>
                     <div style="text-align: right;">
-                        <span id="user-info" class="text-yellow" style="font-size: 13px; font-weight: bold;"></span><br>
-                        <small id="user-subinfo" class="text-muted" style="font-size: 11px;"></small>
+                        <span id="user-info" style="font-size: 13px; font-weight: bold; color: #f1c40f;"></span><br>
+                        <small id="user-subinfo" style="font-size: 11px; color: #888;"></small>
                     </div>
                 </div>
                 <div class="content-area">
-                    <button id="btn-scan-camera" class="btn-outline" style="margin-bottom: 15px; border-color: var(--primary-yellow); color: var(--primary-yellow);" onclick="openQRScanner()">
+                    <button id="btn-scan-camera" class="btn-outline" style="margin-bottom: 15px; border-color: #f1c40f; color: #f1c40f;" onclick="openQRScanner()">
                         <i class="fa-solid fa-camera"></i> Quét mã QR bằng Camera
                     </button>
 
@@ -124,32 +125,32 @@
                             <option value="en">English (Anh)</option>
                             <option value="zh-CN">Chinese (Trung)</option>
                         </select>
-                        <i class="fa-solid fa-arrow-right-arrow-left text-yellow"></i>
+                        <i class="fa-solid fa-arrow-right-arrow-left" style="color: #f1c40f;"></i>
                         <select><option>Tiếng Việt</option></select>
                     </div>
                     
                     <textarea id="source-text" class="box-input" rows="4" placeholder="Nhập văn bản hoặc Quét mã QR để lấy nội dung..."></textarea>
                     
-                    <button id="btn-translate" class="btn-primary mt-15" onclick="doTranslate()">
+                    <button id="btn-translate" class="btn-primary" style="margin-top: 15px;" onclick="doTranslate()">
                         <i class="fa-solid fa-language"></i> Dịch sang tiếng Việt
                     </button>
 
-                    <div id="result-box" class="result-box mt-15" style="display: none;">
+                    <div id="result-box" class="result-box" style="display: none; margin-top: 15px;">
                         <div class="result-header">
                             <span>Kết quả bản dịch</span>
-                            <span class="badge text-yellow">Google Translate</span>
+                            <span class="badge" style="color: #f1c40f;">Google Translate</span>
                         </div>
                         <p id="translated-text" style="line-height: 1.5; margin-top: 10px;"></p>
-                        <div class="mt-15" style="border-top: 1px solid var(--border-color); padding-top: 10px;">
-                            <strong class="text-muted" style="font-size: 12px;">Từ vựng chuyên ngành:</strong>
-                            <ul id="vocab-list" style="font-size: 13px; color: var(--primary-yellow); padding-left: 15px; margin-top: 5px;"></ul>
+                        <div style="border-top: 1px solid #333; padding-top: 10px; margin-top: 15px;">
+                            <strong style="font-size: 12px; color: #888;">Từ vựng chuyên ngành:</strong>
+                            <ul id="vocab-list" style="font-size: 13px; color: #f1c40f; padding-left: 15px; margin-top: 5px;"></ul>
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Tab 2: Kho Tài Liệu (Sinh Viên) -->
-            <div id="tab-library" class="tab-content">
+            <div id="tab-library" class="tab-content" style="display: none;">
                 <div class="top-bar">
                     <h2><i class="fa-solid fa-book"></i> Kho tài liệu</h2>
                 </div>
@@ -162,7 +163,7 @@
             </div>
 
             <!-- Tab 3: Lịch sử dịch (Sinh Viên) -->
-            <div id="tab-history" class="tab-content">
+            <div id="tab-history" class="tab-content" style="display: none;">
                 <div class="top-bar">
                     <h2><i class="fa-solid fa-clock-rotate-left"></i> Lịch sử dịch</h2>
                     <button class="btn-outline" style="padding: 5px 10px; font-size: 12px;" onclick="clearHistory()">Xóa</button>
@@ -173,10 +174,10 @@
             </div>
 
             <!-- Tab 4: Quản lý Sinh viên (Giáo viên) -->
-            <div id="tab-manage-students" class="tab-content">
+            <div id="tab-manage-students" class="tab-content" style="display: none;">
                 <div class="top-bar">
                     <h2><i class="fa-solid fa-users"></i> Quản lý sinh viên</h2>
-                    <span class="text-yellow" style="font-size: 13px; font-weight: bold;">Giáo Viên</span>
+                    <span style="font-size: 13px; font-weight: bold; color: #f1c40f;">Giáo Viên</span>
                 </div>
                 <div class="content-area">
                     <div id="students-list-container"></div>
@@ -184,12 +185,12 @@
             </div>
 
             <!-- Tab 5: Quản lý Tài Liệu (Giáo viên) -->
-            <div id="tab-manage-docs" class="tab-content">
+            <div id="tab-manage-docs" class="tab-content" style="display: none;">
                 <div class="top-bar">
                     <h2><i class="fa-solid fa-file-arrow-up"></i> Tải tài liệu (Tạo QR)</h2>
                 </div>
                 <div class="content-area">
-                    <div style="background: var(--surface-light); padding: 15px; border-radius: 10px; margin-bottom: 20px;">
+                    <div style="background: #1e1e1e; padding: 15px; border-radius: 10px; margin-bottom: 20px;">
                         <div class="input-group">
                             <label>Tên tài liệu / Bài giảng</label>
                             <input type="text" id="doc-title" placeholder="VD: Hướng dẫn vận hành máy tiện CNC">
@@ -212,10 +213,10 @@
 
         <!-- POPUP CAMERA QUÉT MÃ QR (MODAL) -->
         <div id="qr-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100vh; background: rgba(0,0,0,0.9); z-index: 999; flex-direction: column; align-items: center; justify-content: center; padding: 20px;">
-            <div style="width: 100%; max-width: 360px; background: var(--surface-dark); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center;">
+            <div style="width: 100%; max-width: 360px; background: #1a1a1a; padding: 15px; border-radius: 12px; border: 1px solid #333; text-align: center;">
                 <h3 style="margin-bottom: 10px; font-size: 16px;">Đưa mã QR vào khung hình</h3>
                 <div id="qr-reader" style="width: 100%; border-radius: 8px; overflow: hidden;"></div>
-                <button class="btn-outline" style="margin-top: 15px; background: var(--danger); border: none;" onclick="closeQRScanner()">
+                <button class="btn-outline" style="margin-top: 15px; background: #e74c3c; border: none; color: #fff;" onclick="closeQRScanner()">
                     <i class="fa-solid fa-xmark"></i> Đóng Camera
                 </button>
             </div>
@@ -240,6 +241,7 @@
         const database = firebase.database();
     </script>
 
+    <!-- Nạp JavaScript ứng dụng sau khi Firebase đã khởi tạo xong -->
     <script src="script.js"></script>
 </body>
 </html>
